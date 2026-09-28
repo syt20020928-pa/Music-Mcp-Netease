@@ -1218,8 +1218,22 @@ const isEmbedded = (() => {
 //    之后每个 /music/* 请求带 X-Auth-Token，播放缓存文件 /music/file/* 走 ?token=（<audio> 带不了头）。
 const TOKEN = (() => {
   try {
-    const u = new URL(location.href); const t = u.searchParams.get('token');
-    if (t) { localStorage.setItem('music-token', t); u.searchParams.delete('token'); history.replaceState(null, '', u.pathname + (u.search || '') + u.hash); return t; }
+    const u = new URL(location.href);
+    const hashParams = new URLSearchParams(u.hash.startsWith('#') ? u.hash.slice(1) : u.hash);
+    const t = u.searchParams.get('token') || hashParams.get('token');
+    if (t) {
+      localStorage.setItem('music-token', t);
+      // Keep the token in the URL fragment for iOS home-screen web clips.
+      // Fragments stay in the browser and are never sent in HTTP requests or Referer headers.
+      if (u.searchParams.has('token')) {
+        u.searchParams.delete('token');
+        hashParams.set('token', t);
+        const query = u.searchParams.toString();
+        const fragment = hashParams.toString();
+        history.replaceState(null, '', u.pathname + (query ? '?' + query : '') + (fragment ? '#' + fragment : ''));
+      }
+      return t;
+    }
     return localStorage.getItem('music-token') || '';
   } catch { return ''; }
 })();
