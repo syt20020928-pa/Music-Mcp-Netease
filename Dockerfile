@@ -5,8 +5,14 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PORT=8080
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends nginx ca-certificates \
+    && apt-get install -y --no-install-recommends \
+        ca-certificates \
+        ffmpeg \
+        fonts-noto-cjk \
+        nginx \
     && rm -rf /var/lib/apt/lists/*
+
+RUN pip install --no-cache-dir numpy pillow
 
 WORKDIR /app
 COPY . /app
